@@ -3,6 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+
+use App\Models\Kategori;
+
+
 
 class KategoriController extends Controller
 {
@@ -11,7 +16,9 @@ class KategoriController extends Controller
      */
     public function index()
     {
-        //
+        $kategori = Kategori::get();
+
+        return response()->json($kategori);
     }
 
     /**
@@ -27,7 +34,34 @@ class KategoriController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        //validasi form
+        $validator = Validator::make ($request->all(), [
+            'nama_kategori' => 'required'
+        ]);
+
+        // cek jika ada error validasi form
+        if($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'error' => $validator->errors()
+            ], 422);
+        }
+
+        // menyimpan data
+        $kategori = new Kategori;
+        $kategori->fill($request->all());
+        $simpan = $kategori->save();
+
+        if($simpan) {
+            return response()->json([
+                'status' => 'success'
+            ], 201);
+        } else {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'gagal menyimpan data'
+            ], 422);
+        }
     }
 
     /**
@@ -51,7 +85,43 @@ class KategoriController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $validator = Validator::make ($request->all(), [
+            'nama_kategori' => 'required'
+        ]);
+
+        // cek jika ada error validasi form
+        if($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'error' => $validator->errors()
+            ], 422);
+        }
+
+    //cari data berdasarkan id
+        $kategori = Kategori::find($id);
+
+        // jika data tidak ditemukan
+        if (!$kategori) {
+            return response()->json([
+                'status' => 'error',
+                'error' => 'data tidak ditemukan'
+            ], 422);
+        }
+
+        // update data
+        $kategori->fill($request->all());
+        $simpan = $kategori->save();
+
+        if($simpan) {
+            return response()->json([
+                'status' => 'success'
+            ], 201);
+        } else {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'gagal menyimpan data'
+            ], 422);
+        }
     }
 
     /**
@@ -59,6 +129,29 @@ class KategoriController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+         //cari data berdasarkan id
+        $kategori = Kategori::find($id);
+
+        // jika data tidak ditemukan
+        if (!$kategori) {
+            return response()->json([
+                'status' => 'error',
+                'error' => 'data tidak ditemukan'
+            ], 422);
+        }
+
+        // hapus data
+        $hapus = $kategori->delete();
+        if($hapus) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'data berhasil dihapus'
+            ], 201);
+        } else {
+            return response()->json([
+                'status' => 'error',
+                'error' => 'gagal menghapus data'
+            ], 422);
+        }
     }
 }

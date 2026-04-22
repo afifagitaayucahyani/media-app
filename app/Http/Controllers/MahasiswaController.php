@@ -3,6 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+
+use App\Models\Mahasiswa;
+
 
 class MahasiswaController extends Controller
 {
@@ -11,7 +15,8 @@ class MahasiswaController extends Controller
      */
     public function index()
     {
-        //
+        $mahasiswa = Mahasiswa::get();
+        return response()->json($mahasiswa);
     }
 
     /**
@@ -27,7 +32,37 @@ class MahasiswaController extends Controller
      */
     public function store(Request $request)
     {
-        //
+         //validasi form
+        $validator = Validator::make ($request->all(), [
+            'nim' => 'required',
+            'nama_lengkap' => 'required',
+            'nama_lengkap' => 'required',
+            'prodi_id' => 'required',
+        ]);
+
+        // cek jika ada error validasi form
+        if($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'error' => $validator->errors()
+            ], 422);
+        }
+
+        // menyimpan data
+        $mahasiswa = new Mahasiswa;
+        $mahasiswa->fill($request->all());
+        $simpan = $mahasiswa->save();
+
+        if($simpan) {
+            return response()->json([
+                'status' => 'success'
+            ], 201);
+        } else {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'gagal menyimpan data'
+            ], 422);
+        }
     }
 
     /**
@@ -51,7 +86,45 @@ class MahasiswaController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $validator = Validator::make ($request->all(), [
+            'nim' => 'required',
+            'nama_lengkap' => 'required',
+            'prodi_id' => 'required',
+        ]);
+
+        // cek jika ada error validasi form
+        if($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'error' => $validator->errors()
+            ], 422);
+        }
+
+    //cari data berdasarkan id
+        $mahasiswa = Mahasiswa::find($id);
+
+        // jika data tidak ditemukan
+        if (!$mahasiswa) {
+            return response()->json([
+                'status' => 'error',
+                'error' => 'data tidak ditemukan'
+            ], 422);
+        }
+
+        // update data
+        $mahasiswa->fill($request->all());
+        $simpan = $mahasiswa->save();
+
+        if($simpan) {
+            return response()->json([
+                'status' => 'success'
+            ], 201);
+        } else {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'gagal menyimpan data'
+            ], 422);
+        }
     }
 
     /**
@@ -59,6 +132,29 @@ class MahasiswaController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        //cari data berdasarkan id
+        $mahasiswa = Mahasiswa::find($id);
+
+        // jika data tidak ditemukan
+        if (!$mahasiswa) {
+            return response()->json([
+                'status' => 'error',
+                'error' => 'data tidak ditemukan'
+            ], 422);
+        }
+
+        // hapus data
+        $hapus = $mahasiswa->delete();
+        if($hapus) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'data berhasil dihapus'
+            ], 201);
+        } else {
+            return response()->json([
+                'status' => 'error',
+                'error' => 'gagal menghapus data'
+            ], 422);
+        }
     }
 }
